@@ -28,12 +28,19 @@ Then the streamlit runner will launch the system default browser and build + dis
 ## Development quick start
 To run this code as a developer with a local python environment:
 1. Create a virtual python environment within the project folder named `venv`:
-  * `py.exe -m venv venv`
+  <br> `py.exe -m venv venv`
 1. Activate python environment in `venv` folder:
-  * `.\venv\Scripts\activate`
+  <br> `.\venv\Scripts\activate`
 1. Update pip (obligatory):
-  * `python.exe -m pip install --upgrade pip`
+  <br> `py.exe -m pip install --upgrade pip`
 1. Install dependencies:
-  * `pip install -r .\requirements.txt`
-1. Install Jupyter Notebook:
-  * `pip install notebook`
+  <br> `pip install -r .\requirements.txt`
+1. Install Jupyter Notebook and dependencies for PlotLy (latest version without multithreading):
+  <br> `pip install jupyter chart_studio`
+1. Update expiration date:
+  <br> `py.exe .\make_expiration.py`
+1. Launch BeamDashboardX.cs file from Eclipse Scripts menu.
+1. To use Jupyter Notebook to prototype with Eclipse data in Python:
+    1. `jupyter notebook`
+    1. Be sure to have your default web browser set to Google Chrome or Edge.
+    1. Open ScratchPad.ipynb for examples.

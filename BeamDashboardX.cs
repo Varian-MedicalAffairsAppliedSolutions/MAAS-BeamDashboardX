@@ -71,7 +71,7 @@ namespace VMS.TPS
             // startInfo.Arguments += " --accept-Varian-LUSLA";
 
             // uncomment below to help with debugging
-            MessageBox.Show(exePath + " " + startInfo.Arguments,"Arguments (press ctrl+c to copy to clipboard)");
+            // MessageBox.Show(exePath + " " + startInfo.Arguments,"Arguments (press ctrl+c to copy to clipboard)");
             var py = Process.Start(startInfo);
         }
         

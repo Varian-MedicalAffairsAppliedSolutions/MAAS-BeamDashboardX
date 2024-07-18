@@ -39,18 +39,19 @@ def extract_data(patient_id, course_id, plan_id):
         patient = _app.OpenPatientById(patient_id)
         plan = patient.CoursesLot(course_id).PlanSetupsLot(plan_id)
 
-        # load field data
         beams_df = None
         print("Extracting beam data...")
         for beam in plan.Beams:
             beamMetersetValue = beam.Meterset.Value
             totMetersetWeight = [cpp for cpp in beam.ControlPoints][-1].MetersetWeight
             eParams = beam.GetEditableParameters()
-            for controlPoint in enumerate(eParams.ControlPointPairs):
-                beams_df = pd.concat([beams_df, pd.DataFrame({
-                    'Field ID': beam.Id,
-                    # add other data elments of interest here
-                })])
+        #    for idx, controlPoint in enumerate(eParams.ControlPoints):
+            beams_df = pd.concat([beams_df, pd.DataFrame({
+                'Field ID': beam.Id,
+                'MU': np.diff(np.array([0]+[cp.MetersetWeight for cp in eParams.ControlPoints])*beamMetersetValue/totMetersetWeight),
+                'Gantry Angle' : [cp.GantryAngle for cp in eParams.ControlPoints]
+                # add other data elments of interest here
+            })])
 
         # load structure data
         structures_df = None
@@ -71,13 +72,13 @@ def extract_data(patient_id, course_id, plan_id):
         
         # load target contour outline data in beams-eye-view
         bev_df = None
+        plan_target = plan.StructureSet.StructuresLot(plan.TargetVolumeID)
         for beam in plan.Beams:
-            beam_target = plan.StructureSet.StructuresLot(beam.TargetStructure.Id)
-            for idx, contour in enumerate(beam.GetStructureOutlines(beam_target,True)):
+            for idx, contour in enumerate(beam.GetStructureOutlines(plan_target,True)):
                 bev_df = pd.concat([bev_df, pd.DataFrame({
                     'Beam ID' : beam.Id,
-                    'Structure ID': beam_target.Id,
-                    'Color': "#" + beam_target.Color.ToString()[3:],
+                    'Structure ID': plan_target.Id,
+                    'Color': "#" + plan_target.Color.ToString()[3:],
                     'Points X' : [p.X for p in contour],
                     'Points Y' : [p.Y for p in contour],
                     'Contour Idx' : idx,
@@ -252,7 +253,7 @@ st.subheader('MU Histograms')
 #     st.write('Fields have identical MUs. Cannot plot histogram.')
 
 ##
-st.header('Spot Positions and MUs')
+st.header("Beam's eye view")
 ##
 px.defaults.color_continuous_scale = px.colors.sequential.Burg  #Brwnyl
 
@@ -262,12 +263,10 @@ for fld_name, field_df in df.groupby('Field ID'):
 
     for _, dfc_field in dfc[dfc['Beam ID'] == fld_name].groupby('Contour Idx'):
         structure_id = dfc_field['Structure ID'][0]
-        if not fig_scatt:
-            fig_scatt = px.scatter(field_df, x=dfc_field['Points X'], y=dfc_field['Points Y'], title=f"{fld_name}")
-        fig_scatt.add_trace(go.Scatter(
+        fig_scatt = go.Figure([go.Scatter(
             x=dfc_field['Points X'], y=dfc_field['Points Y'], mode='lines',
-            name=structure_id
-        ))
+            name=structure_id)]
+        )
         fig_scatt.update_traces(line_color=dfc_field['Color'][0], selector=dict(name='PTV'))
 
     st.plotly_chart(fig_scatt, use_container_width=True)
@@ -291,7 +290,7 @@ dvh_fig.update_layout(
         font=dict(color='white')
     ),
     title = dict(
-        text=plan_title,
+    text=plan_title.replace('\n',' | '),
         font=dict(color='white')
     ),
     yaxis = dict(
