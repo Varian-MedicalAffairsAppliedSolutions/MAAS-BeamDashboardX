@@ -1,5 +1,5 @@
-# BeamDashboardPro
-This project geenerates a Beam DashBoard for Proton plans in a webrowser as a read-only report with advanced visualizations.  It uses PyESAPI with Plotly running in streamlit via the default web browser (tested with Chrome and Edge).  This project is availble as a compiled release (coutesy of PyInstaller and GitHub Actions) to be downloaded from the [releases](https://github.com/Varian-MedicalAffairsAppliedSolutions/MAAS-BeamDashboardPro/releases) section and then the .zip file is to be extacted into the "System Scripts" directory on your Eclipse system (no Python environment needs to be installed there).  The project aims to bring modern interactive plotting tools to the Eclipse platform leveraging PyESAPI and Streamlit to build a bridge between the Eclipse data model and Plotly (or any other python plotting library of your choice).
+# BeamDashboardX
+This project generates a Beam DashBoard for Photon (X-ray) plans in a web browser as a read-only report with advanced visualizations.  It uses PyESAPI with Plotly running in streamlit via the default web browser (tested with Chrome and Edge).  This project is available as a compiled release (courtesy of PyInstaller and GitHub Actions) to be downloaded from the [releases](https://github.com/Varian-MedicalAffairsAppliedSolutions/MAAS-BeamDashboardX/releases) section and then the .zip file is to be extracted into the "System Scripts" directory on your Eclipse system (no Python environment needs to be installed there).  The project aims to bring modern interactive plotting tools to the Eclipse platform leveraging PyESAPI and Streamlit to build a bridge between the Eclipse data model and Plotly (or any other python plotting library of your choice).
 
 ## Example report (images are dynamic with mouseover, clickable and interactive)
 
@@ -13,14 +13,27 @@ This project geenerates a Beam DashBoard for Proton plans in a webrowser as a re
 Extract contents from the downloaded release .zip into the Systems Scripts directory (2 files and streamlit_runner directory are created)
 ![image](https://github.com/user-attachments/assets/6980ee6e-1225-4975-b753-017f57e0de3c)
 
-Launch BeamDashBoardPro.cs from the system scripts directory
+Launch BeamDashboardX.cs from the system scripts directory
 ![image](https://github.com/user-attachments/assets/2a34de6f-a24f-4524-bbba-10c47e68e18e)
 
 Streamlit runner console will first appear (leave this open)
 ![image](https://github.com/user-attachments/assets/0372c2c5-6fa6-46ef-848d-64005946bc6a)
 
-Then the streamlit runner will launch the system default browser and build+dispaly the BeamDashboardPro interative report <br>
--close broswer window and streamlit runner console when finished
+Then the streamlit runner will launch the system default browser and build + display the BeamDashboardX interactive report <br>
+-close browser window and streamlit runner console when finished
 
 ## Known Issues
 * Streamlit is multi-threaded, and ESAPI only supports access from a single thread. Until a workaround is found, this means any access to PyESAPI should only happen once in an isolated function decorated with `@streamlit.cache_data`
+
+## Development quick start
+To run this code as a developer with a local python environment:
+1. Create a virtual python environment within the project folder named `venv`:
+  * `py.exe -m venv venv`
+1. Activate python environment in `venv` folder:
+  * `.\venv\Scripts\activate`
+1. Update pip (obligatory):
+  * `python.exe -m pip install --upgrade pip`
+1. Install dependencies:
+  * `pip install -r .\requirements.txt`
+1. Install Jupyter Notebook:
+  * `pip install notebook`

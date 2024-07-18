@@ -4,9 +4,9 @@ from datetime import datetime
 from expiration import EXP_DATE
 
 if __name__ == "__main__":
-    print("BeamDashboardPro is valid until " + EXP_DATE.isoformat())
+    print("BeamDashboardX is valid until " + EXP_DATE.isoformat())
     print("Check here for the latest releases:")
-    print("https://github.com/Varian-MedicalAffairsAppliedSolutions/MAAS-BeamDashboardPro/releases")
+    print("https://github.com/Varian-MedicalAffairsAppliedSolutions/MAAS-BeamDashboardX/releases")
     print("**Not Validated for Clinical Use**")
     # comment previous line if software has been validated for use in your clinic
     # see license.txt for full disclaimer and details
