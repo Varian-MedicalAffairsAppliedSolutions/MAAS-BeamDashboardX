@@ -1,0 +1,87 @@
+name: BeamDashBoardPro Python Application Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_num:
+        description: 'build number (unique for a given day)'
+        required: true
+        default: '1'
+      draft_bool:
+        description: 'set to "true" to create draft release only'
+        required: true
+        default: 'false'
+  # push:
+  #   tags:
+  #     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  #   branches: [ main ]
+  #   paths-ignore:
+  #     - 'README.md'
+  # pull_request:
+  #   branches: [ main ]
+
+env:
+  RELEASE_NAME: ${{ github.event.repository.name }}-v
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y.%m.%d')"
+    
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Make Expiration
+      run: |
+        python make_expiration.py
+
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller streamlit_runner.spec
+        
+    # - name: Stage build
+    #   run: |
+    #     cp -r dist "${{ runner.temp }}/dist"
+        
+    - name: Stage scripts
+      run: |
+        cp BeamDashboardPro.cs "dist/BeamDashboardPro.cs"
+        cp beam_dashboard_pro.py "dist/beam_dashboard_pro.py"
+
+    - name: Zip
+      run: |
+        Compress-Archive `
+          -Path "dist/*" `
+          -DestinationPath "${{ env.RELEASE_NAME }}${{ steps.date.outputs.date }}.${{ github.event.inputs.build_num }}.zip"
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v0.1.13
+      with:
+        name: ${{ env.RELEASE_NAME }}${{ steps.date.outputs.date }}.${{ github.event.inputs.build_num }}
+        tag_name: ${{ steps.date.outputs.date }}.${{ github.event.inputs.build_num }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        draft: ${{ github.event.inputs.draft_bool == 'true' }}
+        prerelease: false
+        body: |
+          This is the official release of **`${{ github.event.repository.name }}`** `v${{ steps.date.outputs.date }}.${{ github.event.inputs.build_num }}`.
+          The .zip file contains a portable "compiled" python executable created with PyInstaller along with an ESAPI single file script launcher (.cs).
+          For use on Eclipse versions 16 and up.
+          This software is valid for 365 days post release.
+        files: ${{ env.RELEASE_NAME }}${{ steps.date.outputs.date }}.${{ github.event.inputs.build_num }}.zip
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: DashboardPro${{ github.ref_name }}
+#        path: ${{ runner.temp }}/dist/*
