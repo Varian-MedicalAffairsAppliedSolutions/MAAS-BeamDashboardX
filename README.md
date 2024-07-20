@@ -10,8 +10,8 @@ This project generates a Beam DashBoard for Photon (X-ray) plans in a web browse
 ![image](https://github.com/user-attachments/assets/46236c04-6bd4-45e8-9337-b70b76ec9973)
 
 ## Installation Quickstart Guide 
-Afte downloading the .zip file from the release and moving it to where Eclipse can acccess, right click select "properties" and unblock (if blocked)<br>
-![unblockdownloadedzip](https://github.com/user-attachments/assets/568df1ac-f3bb-479f-b82c-99033203c6e0)
+After downloading the .zip file from the release and moving it to where Eclipse can acccess, right click select "properties" and unblock (if blocked)<br>
+![image](https://github.com/user-attachments/assets/daddc2ed-fc65-4782-a435-975aa3234592)
 
 Extract contents from the downloaded release .zip into the Systems Scripts directory (2 files and streamlit_runner directory are created)
 ![image](https://github.com/user-attachments/assets/6980ee6e-1225-4975-b753-017f57e0de3c)
