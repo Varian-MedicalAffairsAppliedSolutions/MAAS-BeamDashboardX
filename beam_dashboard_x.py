@@ -223,7 +223,7 @@ st.dataframe(beams_df, use_container_width=True) # creates a table
 
 
 ##
-st.header('TODO: Beam stats')
+st.header('Beam stats')
 ##
 
 #################
@@ -258,9 +258,10 @@ st.header('TODO: Beam stats')
 ################
 #   Arc/VMAT   #
 ################
-if beams_df.iloc[0]['Technique'] in ['VMAT', 'Arc', 'MLCArc']:
-    st.subheader('Beam MU Histograms')
-    # TODO: implement MU as a function of gantry (VMAT)
+if beams_df.iloc[0]['Technique'] in ['VMAT', 'ARC', 'MLCArc']:
+    st.subheader('Beam MU vs. Gantry Angle')
+    fig = px.scatter(beams_df, x="Gantry Angle", y="MU", color="Field ID")
+    st.plotly_chart(fig,use_container_width=True)
 
 
 ###################
