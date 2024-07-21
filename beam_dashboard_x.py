@@ -22,12 +22,12 @@ def parse_args():
 
 args = parse_args()
 
-plan_id = args.plan_id  #"MODev01"
-course_id = args.course_id  #"Min MU 400"
-patient_id = args.patient_id  #"LUNG_063"
+plan_id = args.plan_id
+course_id = args.course_id
+patient_id = args.patient_id
 
 
-@st.cache_data
+@st.cache_data # this keeps streamlit from re-loading ESAPI (avoids atomic access violation)
 def extract_data(patient_id, course_id, plan_id):
     print("Launching PyESAPI...")
     import pyesapi
@@ -48,6 +48,7 @@ def extract_data(patient_id, course_id, plan_id):
         #    for idx, controlPoint in enumerate(eParams.ControlPoints):
             beams_df = pd.concat([beams_df, pd.DataFrame({
                 'Field ID': beam.Id,
+                'Technique': beam.Technique.ToString(),
                 'MU': np.diff(np.array([0]+[cp.MetersetWeight for cp in eParams.ControlPoints])*beamMetersetValue/totMetersetWeight),
                 'Gantry Angle' : [cp.GantryAngle for cp in eParams.ControlPoints]
                 # add other data elments of interest here
@@ -209,77 +210,68 @@ Note: To auto-collapse this license agreement display, see the ESAPI .cs file.
 plan_title = f'Plan ID: {plan_id}\nPatient ID: {patient_id} | Course ID: {course_id}'
 st.title(plan_title)
 
-df, dfs, dfc = extract_data(patient_id, course_id, plan_id)
+beams_df, structures_df, bev_df = extract_data(patient_id, course_id, plan_id)
 st.header('Raw Field Data')
 st.download_button(
    "Download (.csv)",
-   df.to_csv(index=False).encode('utf-8'),
+   beams_df.to_csv(index=False).encode('utf-8'),
    "raw_data.csv",
    "text/csv",
    key='download-csv'
 )
-st.dataframe(df, use_container_width=True) # creates a table
-
-##
-st.header('Beam stats')
-##
-st.subheader('Beam MU')
-##
-
-# proton implementation, table of stats:
-# st.dataframe(df.groupby('Field ID', as_index=False).agg({'MU': ['min', 'mean', 'max']}), use_container_width=True)
-
-##
-st.subheader('Complexity Metrics')
-##
-
-# TODO: if Static Gantry plan, display fluence properties, if VMAT display leaf properties
+st.dataframe(beams_df, use_container_width=True) # creates a table
 
 
 ##
-st.subheader('MU Histograms')
+st.header('TODO: Beam stats')
 ##
 
-# proton implementation
-# bin_size = st.number_input('Bin width', value=75, step=25, min_value=1)
-# try:
-#     group_labels = df['Field ID'].unique()
-#     hist_data = [df[df['Field ID'] == f_id]['MU'] for f_id in group_labels]
-#     # TODO: switch y-axis to counts
-#     fig_hist = ff.create_distplot(hist_data, group_labels, histnorm='', bin_size=bin_size)
-#     st.plotly_chart(fig_hist, use_container_width=True)
+#################
+#  Static/IMRT  #
+#################
+# if beams_df.iloc[0]['Technique'] in ['Static', 'MLC', 'MultipleStaticSegmentIMRT', 'SlidingWindowIMRT']:
+#     ##
+#     st.header("Beam's eye view")
+#     ##
 
-# except np.linalg.LinAlgError:
-#     st.write('Fields have identical MUs. Cannot plot histogram.')
+#     for fld_name, field_df in beams_df.groupby('Field ID'):
+#         # st.subheader(fld_name)
+#         fig_scatt = go.Figure()
+#         for _, bev_field in bev_df[bev_df['Beam ID'] == fld_name].groupby('Contour Idx'):
+#             # TODO: loop through structures:
+#             structure_id = bev_field['Structure ID'][0]
+#             fig_scatt.add_trace(go.Scatter(
+#             x=bev_field['Points X'], y=bev_field['Points Y'],
+#                 mode='lines', line_color=bev_field['Color'][0], name=structure_id
+#             ))
 
-##
-st.header("Beam's eye view")
-##
-px.defaults.color_continuous_scale = px.colors.sequential.Burg  #Brwnyl
+#             # fig_scatt.update_traces(line_color=dfc_field['Color'][0], selector=dict(name='PTV'))
 
-for fld_name, field_df in df.groupby('Field ID'):
-    st.subheader(fld_name)
-    fig_scatt = None
+#         #st.plotly_chart(fig_scatt, use_container_width=True)
+#         fig_scatt.update_yaxes(
+#             scaleanchor="x",
+#             scaleratio=1,
+#         )
+#         
+#         st.plotly_chart(fig_scatt, use_container_width=True)
 
-    for _, dfc_field in dfc[dfc['Beam ID'] == fld_name].groupby('Contour Idx'):
-        structure_id = dfc_field['Structure ID'][0]
-        fig_scatt = go.Figure([go.Scatter(
-            x=dfc_field['Points X'], y=dfc_field['Points Y'], mode='lines',
-            name=structure_id)]
-        )
-        fig_scatt.update_traces(line_color=dfc_field['Color'][0], selector=dict(name='PTV'))
+################
+#   Arc/VMAT   #
+################
+if beams_df.iloc[0]['Technique'] in ['VMAT', 'Arc', 'MLCArc']:
+    st.subheader('Beam MU Histograms')
+    # TODO: implement MU as a function of gantry (VMAT)
 
-    st.plotly_chart(fig_scatt, use_container_width=True)
 
-##
-st.header('DVH')
-##
+###################
+st.header('DVH')  #
+###################
 #TODO: make cursor white!
 # get handle on this: <rect class="nsewdrag drag" data-subplot="xy" x="61" y="100" width="499" height="270" style="fill: transparent; stroke-width: 0; pointer-events: all;"></rect>
 # ... and set cursor style
 
 dvh_fig = go.Figure()
-for structure_id, dvh_data in dfs.groupby('Structure ID'):
+for structure_id, dvh_data in structures_df.groupby('Structure ID'):
     dvh_fig.add_trace(go.Scatter(
         x=dvh_data['Dose %'], y=dvh_data['Volume %'], mode='lines', line_color=dvh_data['Color'][0], name=structure_id
     ))
